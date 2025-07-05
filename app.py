@@ -78,13 +78,11 @@ def transfer():
 @app.route('/api/transactions/<int:user_id>', methods=['GET'])
 def get_transactions(user_id):
     txns = Transaction.query.filter_by(user_id=user_id).order_by(Transaction.date.desc()).all()
-    return jsonify([
-        {
-            'date': t.date.strftime('%Y-%m-%d %H:%M'),
-            'type': t.type,
-            'amount': t.amount
-        } for t in txns
-    ])
+    return jsonify([{
+        'date': t.date.strftime('%Y-%m-%d %H:%M'),
+        'type': t.type,
+        'amount': t.amount
+    } for t in txns])
 
 @app.before_first_request
 def init_db():

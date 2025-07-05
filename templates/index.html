@@ -1,137 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Saraswat Bank Portal</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
-    input, button { width: 100%; margin: 10px 0; padding: 10px; }
-    .hidden { display: none; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    .nav a { margin-right: 10px; cursor: pointer; color: blue; text-decoration: underline; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saraswat Bank Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 60%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>Saraswat Bank Portal</h2>
+    <h2>Saraswat Bank Login</h2>
+    <form id="loginForm">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
 
-  <div class="nav">
-    <a onclick="showSection('login')">Login</a>
-    <a onclick="showSection('dashboard')">Dashboard</a>
-    <a onclick="showSection('transfer')">Transfer</a>
-    <a onclick="showSection('history')">History</a>
-  </div>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
 
-  <div id="login" class="section">
-    <h3>Login</h3>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <p id="loginMsg" style="color:red;"></p>
-  </div>
+        <button type="submit">Login</button>
+    </form>
 
-  <div id="dashboard" class="section hidden">
-    <h3>Dashboard</h3>
-    <p><strong>Name:</strong> <span id="name"></span></p>
-    <p><strong>Account No:</strong> <span id="accno"></span></p>
-    <p><strong>Balance:</strong> ₹<span id="balance"></span></p>
-  </div>
-
-  <div id="transfer" class="section hidden">
-    <h3>Transfer Funds</h3>
-    <input type="text" id="toAccount" placeholder="To Account No" />
-    <input type="number" id="amount" placeholder="Amount" />
-    <button onclick="transfer()">Send</button>
-    <p id="transferMsg"></p>
-  </div>
-
-  <div id="history" class="section hidden">
-    <h3>Transaction History</h3>
-    <table>
-      <thead><tr><th>Date</th><th>Type</th><th>Amount</th></tr></thead>
-      <tbody id="txnTable"></tbody>
-    </table>
-  </div>
+    <div class="status" id="status"></div>
 </div>
 
 <script>
-  let currentUser = {};
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
 
-  function showSection(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-  }
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-  async function login() {
-    document.getElementById('loginMsg').innerText = '';
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: document.getElementById('username').value,
-        password: document.getElementById('password').value
-      })
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('status').innerHTML = `Welcome, ${data.user.name}! Balance: ₹${data.user.balance}`;
+            } else {
+                document.getElementById('status').innerHTML = `Error: ${data.message}`;
+            }
+        })
+        .catch(error => {
+            document.getElementById('status').innerHTML = 'An error occurred!';
+        });
     });
-    const data = await res.json();
-    if (data.status === 'success') {
-      currentUser = data.user;
-      document.getElementById('name').innerText = data.user.name;
-      document.getElementById('accno').innerText = data.user.account_no;
-      document.getElementById('balance').innerText = data.user.balance.toFixed(2);
-      showSection('dashboard');
-    } else {
-      document.getElementById('loginMsg').innerText = data.message;
-    }
-  }
-
-  async function transfer() {
-    document.getElementById('transferMsg').innerText = '';
-    const toAccount = document.getElementById('toAccount').value;
-    const amount = parseFloat(document.getElementById('amount').value);
-    if (!toAccount || !amount || amount <= 0) {
-      document.getElementById('transferMsg').innerText = "Please enter valid account and amount.";
-      return;
-    }
-    const res = await fetch('/api/transfer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from_user_id: currentUser.id,
-        to_account: toAccount,
-        amount: amount
-      })
-    });
-    const data = await res.json();
-    document.getElementById('transferMsg').innerText = data.message;
-    if (data.status === 'success') {
-      await refreshBalance();
-      document.getElementById('toAccount').value = '';
-      document.getElementById('amount').value = '';
-    }
-  }
-
-  async function refreshBalance() {
-    const res = await fetch(`/api/user/${currentUser.id}`);
-    const data = await res.json();
-    document.getElementById('balance').innerText = data.balance.toFixed(2);
-  }
-
-  async function loadTransactions() {
-    const res = await fetch(`/api/transactions/${currentUser.id}`);
-    const data = await res.json();
-    const table = document.getElementById('txnTable');
-    table.innerHTML = '';
-    data.forEach(txn => {
-      const row = `<tr><td>${txn.date}</td><td>${txn.type}</td><td>${txn.amount}</td></tr>`;
-      table.innerHTML += row;
-    });
-  }
-
-  // Load transactions when History tab is clicked
-  document.querySelector("a[onclick*='history']").addEventListener('click', loadTransactions);
 </script>
 
 </body>

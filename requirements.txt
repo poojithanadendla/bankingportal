@@ -1,4 +1,4 @@
-Flask
-flask_sqlalchemy
-flask_cors
-werkzeug
+Flask==3.1.1
+flask_sqlalchemy==3.0.1
+flask_cors==3.1.1
+werkzeug==2.1.2
