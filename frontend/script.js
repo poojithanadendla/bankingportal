@@ -1,118 +1,69 @@
-let currentUser = null;
-
-document.getElementById('login-btn').addEventListener('click', login);
-document.getElementById('transfer-btn').addEventListener('click', transferFunds);
-document.getElementById('load-transactions-btn').addEventListener('click', loadTransactions);
-document.getElementById('logout-btn').addEventListener('click', logout);
+let currentUser = '';
 
 function login() {
-  const username = document.getElementById('username').value.trim();
+  const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
-  fetch('/api/login', {
+  fetch('http://127.0.0.1:5000/api/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password})
   })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      currentUser = username;
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('user').innerText = username;
+      loadAccount();
+      loadTransactions();
+    } else {
+      document.getElementById('loginMsg').innerText = data.message;
+    }
+  });
+}
+
+function loadAccount() {
+  fetch(`http://127.0.0.1:5000/api/account/${currentUser}`)
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        currentUser = username;
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('account-section').style.display = 'block';
-        document.getElementById('login-message').textContent = '';
-        loadAccountDetails();
-      } else {
-        document.getElementById('login-message').textContent = data.message;
-      }
-    })
-    .catch(() => {
-      document.getElementById('login-message').textContent = 'Error contacting server.';
+      document.getElementById('accNo').innerText = data.account_no;
+      document.getElementById('balance').innerText = data.balance;
     });
 }
 
-function loadAccountDetails() {
-  fetch(`/api/accounts/${currentUser}`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.error) {
-        document.getElementById('account-info').innerHTML = `
-          <strong>Account Number:</strong> ${data.account_number} <br />
-          <strong>Balance:</strong> ₹${data.balance.toFixed(2)} <br />
-          <strong>Account Type:</strong> ${data.account_type}
-        `;
-      } else {
-        document.getElementById('account-info').textContent = data.error;
-      }
-    });
-}
+function transfer() {
+  const to = document.getElementById('toUser').value;
+  const amount = document.getElementById('amount').value;
 
-function transferFunds() {
-  const toUser = document.getElementById('transfer-to').value.trim();
-  const amount = parseFloat(document.getElementById('transfer-amount').value);
-
-  if (!toUser || isNaN(amount) || amount <= 0) {
-    document.getElementById('transfer-message').textContent = 'Enter valid recipient and amount.';
-    return;
-  }
-
-  fetch('/api/transfer', {
+  fetch('http://127.0.0.1:5000/api/transfer', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: currentUser, to: toUser, amount: amount })
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({from: currentUser, to, amount})
   })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById('transfer-message').style.color = 'green';
-        document.getElementById('transfer-message').textContent = 'Transfer successful!';
-        loadAccountDetails();
-        loadTransactions();
-      } else {
-        document.getElementById('transfer-message').style.color = 'red';
-        document.getElementById('transfer-message').textContent = data.error || 'Transfer failed.';
-      }
-    })
-    .catch(() => {
-      document.getElementById('transfer-message').style.color = 'red';
-      document.getElementById('transfer-message').textContent = 'Error contacting server.';
-    });
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('transferMsg').innerText = "Transfer successful!";
+      loadAccount();
+      loadTransactions();
+    } else {
+      document.getElementById('transferMsg').innerText = data.error;
+    }
+  });
 }
 
 function loadTransactions() {
-  fetch(`/api/transactions/${currentUser}`)
+  fetch(`http://127.0.0.1:5000/api/transactions/${currentUser}`)
     .then(res => res.json())
     .then(data => {
-      const list = document.getElementById('transaction-list');
+      const list = document.getElementById('txns');
       list.innerHTML = '';
-      if (!Array.isArray(data) || data.length === 0) {
-        list.innerHTML = '<li>No transactions found.</li>';
-        return;
-      }
       data.forEach(txn => {
-        let desc = '';
-        if (txn.type === 'debit') {
-          desc = `Sent ₹${txn.amount} to ${txn.to}`;
-        } else if (txn.type === 'credit') {
-          desc = `Received ₹${txn.amount} from ${txn.from}`;
-        }
         const li = document.createElement('li');
-        li.textContent = desc;
+        li.innerText = `${txn.from} sent ₹${txn.amount} to ${txn.to}`;
         list.appendChild(li);
       });
     });
-}
-
-function logout() {
-  currentUser = null;
-  document.getElementById('account-section').style.display = 'none';
-  document.getElementById('login-section').style.display = 'block';
-  document.getElementById('login-message').textContent = '';
-  document.getElementById('transfer-message').textContent = '';
-  document.getElementById('transaction-list').innerHTML = '';
-  document.getElementById('account-info').textContent = '';
-  document.getElementById('username').value = '';
-  document.getElementById('password').value = '';
-  document.getElementById('transfer-to').value = '';
-  document.getElementById('transfer-amount').value = '';
 }

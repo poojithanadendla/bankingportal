@@ -1,36 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>Saraswat Bank Portal</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Saraswat Bank Portal</h1>
-
-  <div id="login-section">
+  <div id="loginSection">
     <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" /><br />
-    <input type="password" id="password" placeholder="Password" /><br />
-    <button id="login-btn">Login</button>
-    <p id="login-message"></p>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <p id="loginMsg"></p>
   </div>
 
-  <div id="account-section" style="display:none;">
-    <h2>Account Details</h2>
-    <p id="account-info"></p>
+  <div id="dashboard" style="display:none;">
+    <h2>Welcome, <span id="user"></span></h2>
+    <p>Account No: <span id="accNo"></span></p>
+    <p>Balance: ₹<span id="balance"></span></p>
 
     <h3>Transfer Funds</h3>
-    <input type="text" id="transfer-to" placeholder="Recipient Username" />
-    <input type="number" id="transfer-amount" placeholder="Amount" />
-    <button id="transfer-btn">Transfer</button>
-    <p id="transfer-message"></p>
+    To: <input id="toUser"><br>
+    Amount: <input id="amount"><br>
+    <button onclick="transfer()">Send</button>
+    <p id="transferMsg"></p>
 
-    <h3>Transaction History</h3>
-    <button id="load-transactions-btn">Load Transactions</button>
-    <ul id="transaction-list"></ul>
-
-    <button id="logout-btn">Logout</button>
+    <h3>Transactions</h3>
+    <ul id="txns"></ul>
   </div>
 
   <script src="script.js"></script>

@@ -1,14 +1,4 @@
 {
-    "john123": {
-        "username": "john123",
-        "password": "pass123",
-        "full_name": "John Doe",
-        "email": "john@example.com"
-    },
-    "jane456": {
-        "username": "jane456",
-        "password": "pass456",
-        "full_name": "Jane Smith",
-        "email": "jane@example.com"
-    }
+  "john": { "password": "1234" },
+  "alice": { "password": "abcd" }
 }

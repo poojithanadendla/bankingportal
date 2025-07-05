@@ -1,22 +1,9 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  max-width: 600px;
+  font-family: Arial;
+  padding: 20px;
+  background: #f0f8ff;
 }
-
 input, button {
   margin: 5px 0;
   padding: 8px;
-  width: 100%;
-  max-width: 300px;
-  box-sizing: border-box;
-}
-
-button {
-  cursor: pointer;
-}
-
-#login-message, #transfer-message {
-  color: red;
-  font-weight: bold;
 }
