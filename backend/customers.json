@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "name": "John Doe",
+        "balance": 5000,
+        "status": "Active"
+    },
+    {
+        "id": 2,
+        "name": "Jane Smith",
+        "balance": 3000,
+        "status": "Inactive"
+    }
+]

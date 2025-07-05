@@ -1,123 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saraswat Bank Portal</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        input, button {
-            padding: 8px;
-            margin: 5px;
-            width: 200px;
-        }
-        #message {
-            margin-top: 20px;
-            color: green;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Saraswat Bank - Customer Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #f0f4f7, #dfe6ed);
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      background-color: #1b1f23;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header h1 {
+      margin: 0;
+      z-index: 1;
+      position: relative;
+    }
+
+    .container {
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    .action-btn {
+      margin: 0 5px;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+
+    .edit-btn {
+      background-color: #ffc107;
+      color: black;
+    }
+
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+  </style>
 </head>
 <body>
+  <div class="header">
+    <h1>Saraswat Bank - Customer Portal</h1>
+  </div>
 
-    <h2>Saraswat Bank Portal</h2>
+  <div class="container">
+    <div class="input-group">
+      <label>Name:</label>
+      <input type="text" id="name">
+    </div>
+    <div class="input-group">
+      <label>Account Balance:</label>
+      <input type="number" id="balance">
+    </div>
+    <div class="input-group">
+      <label>Status:</label>
+      <select id="status">
+        <option>Active</option>
+        <option>Inactive</option>
+      </select>
+    </div>
+    <button onclick="addCustomer()">Add Customer</button>
 
-    <!-- Registration Form -->
-    <h3>Register</h3>
-    <input type="text" id="registerUsername" placeholder="Enter username"><br>
-    <input type="password" id="registerPassword" placeholder="Enter password"><br>
-    <button onclick="register()">Register</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Balance</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="customerTable"></tbody>
+    </table>
+  </div>
 
-    <!-- Login Form -->
-    <h3>Login</h3>
-    <input type="text" id="loginUsername" placeholder="Enter username"><br>
-    <input type="password" id="loginPassword" placeholder="Enter password"><br>
-    <button onclick="login()">Login</button>
+  <script>
+    let editingId = null;
 
-    <!-- Account Management -->
-    <h3>Account Details</h3>
-    <button onclick="viewAccount()">View Account</button><br>
+    function fetchCustomers() {
+      fetch('/api/customers')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('customerTable');
+          table.innerHTML = '';
+          data.forEach(customer => {
+            const row = `
+              <tr>
+                <td>${customer.name}</td>
+                <td>${customer.balance}</td>
+                <td>${customer.status}</td>
+                <td>
+                  <button class="action-btn edit-btn" onclick="editCustomer(${customer.id}, '${customer.name}', ${customer.balance}, '${customer.status}')">Edit</button>
+                  <button class="action-btn delete-btn" onclick="deleteCustomer(${customer.id})">Delete</button>
+                </td>
+              </tr>
+            `;
+            table.innerHTML += row;
+          });
+        });
+    }
 
-    <!-- Fund Transfer -->
-    <h3>Fund Transfer</h3>
-    <input type="text" id="senderAccount" placeholder="Sender account number"><br>
-    <input type="text" id="receiverAccount" placeholder="Receiver account number"><br>
-    <input type="number" id="transferAmount" placeholder="Amount to transfer"><br>
-    <button onclick="transferFunds()">Transfer Funds</button>
+    function addCustomer() {
+      const name = document.getElementById('name').value;
+      const balance = document.getElementById('balance').value;
+      const status = document.getElementById('status').value;
 
-    <!-- Transaction History -->
-    <h3>Transaction History</h3>
-    <button onclick="viewTransactionHistory()">View Transaction History</button><br>
+      if (!name.trim()) return alert('Please enter a name.');
 
-    <div id="message"></div>
+      const data = { name, balance, status };
 
-    <script>
-        const apiUrl = 'http://127.0.0.1:5000';
+      if (editingId) {
+        fetch(`/api/customers/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(() => {
+          editingId = null;
+          clearForm();
+          fetchCustomers();
+        });
+      } else {
+        fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(res => {
+          if (!res.ok) {
+            alert('Failed to add customer.');
+          } else {
+            clearForm();
+            fetchCustomers();
+          }
+        });
+      }
+    }
 
-        async function register() {
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-            const response = await fetch(`${apiUrl}/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await response.json();
-            displayMessage(data.message);
-        }
+    function editCustomer(id, name, balance, status) {
+      document.getElementById('name').value = name;
+      document.getElementById('balance').value = balance;
+      document.getElementById('status').value = status;
+      editingId = id;
+    }
 
-        async function login() {
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-            const response = await fetch(`${apiUrl}/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await response.json();
-            displayMessage(data.message);
-        }
+    function deleteCustomer(id) {
+      if (confirm("Are you sure to delete?")) {
+        fetch(`/api/customers/${id}`, { method: 'DELETE' })
+          .then(() => fetchCustomers());
+      }
+    }
 
-        async function viewAccount() {
-            const userId = prompt('Enter your user ID:');
-            const response = await fetch(`${apiUrl}/account/${userId}`);
-            const data = await response.json();
-            displayMessage(JSON.stringify(data.accounts));
-        }
+    function clearForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('balance').value = '';
+      document.getElementById('status').value = 'Active';
+    }
 
-        async function transferFunds() {
-            const senderAccount = document.getElementById('senderAccount').value;
-            const receiverAccount = document.getElementById('receiverAccount').value;
-            const amount = document.getElementById('transferAmount').value;
-
-            const response = await fetch(`${apiUrl}/transfer`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ sender_account: senderAccount, receiver_account: receiverAccount, amount })
-            });
-            const data = await response.json();
-            displayMessage(data.message);
-        }
-
-        async function viewTransactionHistory() {
-            const userId = prompt('Enter your user ID:');
-            const response = await fetch(`${apiUrl}/transaction_history/${userId}`);
-            const data = await response.json();
-            displayMessage(JSON.stringify(data.transaction_history));
-        }
-
-        function displayMessage(message) {
-            document.getElementById('message').innerText = message;
-        }
-    </script>
-
+    // Automatically fetch customers when the page loads
+    window.onload = fetchCustomers;
+  </script>
 </body>
 </html>
