@@ -1,33 +1,93 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Saraswat Bank Portal</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
+<head><title>Bank Portal</title></head>
 <body>
-  <div id="loginSection">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-    <p id="loginMsg"></p>
-  </div>
-
+  <h2>Login</h2>
+  <input id="username" placeholder="Username" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+  
   <div id="dashboard" style="display:none;">
-    <h2>Welcome, <span id="user"></span></h2>
-    <p>Account No: <span id="accNo"></span></p>
-    <p>Balance: ₹<span id="balance"></span></p>
-
-    <h3>Transfer Funds</h3>
-    To: <input id="toUser"><br>
-    Amount: <input id="amount"><br>
-    <button onclick="transfer()">Send</button>
-    <p id="transferMsg"></p>
-
-    <h3>Transactions</h3>
-    <ul id="txns"></ul>
+    <h2>Customers</h2>
+    <button onclick="showAddForm()">Add Customer</button>
+    <div id="addForm" style="display:none;">
+      <input id="custName" placeholder="Name" />
+      <input id="custEmail" placeholder="Email" />
+      <input id="custPhone" placeholder="Phone" />
+      <button onclick="addCustomer()">Add</button>
+    </div>
+    <table border="1" id="customersTable">
+      <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <script src="script.js"></script>
+<script>
+let tokenUser = null;
+
+function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  fetch('http://127.0.0.1:5000/api/login', {
+    method: 'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username, password})
+  }).then(res => {
+    if (res.ok) return res.json();
+    else throw new Error('Login failed');
+  }).then(data => {
+    alert('Welcome ' + data.user.name);
+    tokenUser = data.user;
+    document.body.querySelector('h2').style.display = 'none';
+    document.getElementById('username').style.display = 'none';
+    document.getElementById('password').style.display = 'none';
+    document.querySelector('button').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadCustomers();
+  }).catch(e => alert(e.message));
+}
+
+function loadCustomers() {
+  fetch('http://127.0.0.1:5000/api/customers')
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector('#customersTable tbody');
+    tbody.innerHTML = '';
+    data.forEach(c => {
+      tbody.innerHTML += `<tr>
+        <td>${c.name}</td><td>${c.email}</td><td>${c.phone}</td>
+        <td><button onclick="deleteCustomer(${c.id})">Delete</button></td>
+      </tr>`;
+    });
+  });
+}
+
+function showAddForm() {
+  document.getElementById('addForm').style.display = 'block';
+}
+
+function addCustomer() {
+  const name = document.getElementById('custName').value;
+  const email = document.getElementById('custEmail').value;
+  const phone = document.getElementById('custPhone').value;
+  fetch('http://127.0.0.1:5000/api/customers', {
+    method: 'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, email, phone})
+  }).then(res => {
+    if(res.ok) {
+      loadCustomers();
+      document.getElementById('addForm').style.display = 'none';
+    } else {
+      alert('Failed to add customer');
+    }
+  });
+}
+
+function deleteCustomer(id) {
+  fetch(`http://127.0.0.1:5000/api/customers/${id}`, {method: 'DELETE'})
+  .then(() => loadCustomers());
+}
+</script>
 </body>
 </html>

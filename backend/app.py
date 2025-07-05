@@ -6,71 +6,54 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-DATA_PATH = "backend"
-
-def read_json(file):
-    with open(os.path.join(DATA_PATH, file), 'r') as f:
+def load_json(filename):
+    if not os.path.exists(filename):
+        return []
+    with open(filename, 'r') as f:
         return json.load(f)
 
-def write_json(file, data):
-    with open(os.path.join(DATA_PATH, file), 'w') as f:
+def save_json(filename, data):
+    with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.json
-    users = read_json('users.json')
-    username = data.get('username')
-    password = data.get('password')
+    creds = request.json
+    users = load_json('backend/users.json')
+    for user in users:
+        if user['username'] == creds['username'] and user['password'] == creds['password']:
+            return jsonify({"message": "success", "user": {"id": user['id'], "name": user['name'], "username": user['username']}})
+    return jsonify({"message": "Invalid credentials"}), 401
 
-    if username in users and users[username]['password'] == password:
-        return jsonify({'success': True, 'username': username})
-    return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+@app.route('/api/customers', methods=['GET', 'POST'])
+def customers():
+    filename = 'backend/customers.json'
+    if request.method == 'GET':
+        return jsonify(load_json(filename))
+    elif request.method == 'POST':
+        data = load_json(filename)
+        new_customer = request.json
+        new_customer['id'] = len(data) + 1
+        data.append(new_customer)
+        save_json(filename, data)
+        return jsonify({"message": "Customer added"}), 201
 
-@app.route('/api/account/<username>', methods=['GET'])
-def account(username):
-    accounts = read_json('accounts.json')
-    if username in accounts:
-        return jsonify(accounts[username])
-    return jsonify({'error': 'User not found'}), 404
-
-@app.route('/api/transfer', methods=['POST'])
-def transfer():
-    data = request.json
-    from_user = data['from']
-    to_user = data['to']
-    amount = float(data['amount'])
-
-    accounts = read_json('accounts.json')
-    transactions = read_json('transactions.json')
-
-    if from_user not in accounts or to_user not in accounts:
-        return jsonify({'error': 'Invalid users'}), 400
-
-    if accounts[from_user]['balance'] < amount:
-        return jsonify({'error': 'Insufficient funds'}), 400
-
-    # Update balances
-    accounts[from_user]['balance'] -= amount
-    accounts[to_user]['balance'] += amount
-
-    # Add transaction
-    transactions.append({
-        'from': from_user,
-        'to': to_user,
-        'amount': amount
-    })
-
-    write_json('accounts.json', accounts)
-    write_json('transactions.json', transactions)
-
-    return jsonify({'success': True})
-
-@app.route('/api/transactions/<username>', methods=['GET'])
-def get_transactions(username):
-    transactions = read_json('transactions.json')
-    user_txns = [txn for txn in transactions if txn['from'] == username or txn['to'] == username]
-    return jsonify(user_txns)
+@app.route('/api/customers/<int:cid>', methods=['PUT', 'DELETE'])
+def customer_modify(cid):
+    filename = 'backend/customers.json'
+    data = load_json(filename)
+    customer = next((c for c in data if c['id'] == cid), None)
+    if not customer:
+        return jsonify({"message": "Customer not found"}), 404
+    if request.method == 'PUT':
+        update = request.json
+        customer.update(update)
+        save_json(filename, data)
+        return jsonify({"message": "Customer updated"})
+    elif request.method == 'DELETE':
+        data = [c for c in data if c['id'] != cid]
+        save_json(filename, data)
+        return jsonify({"message": "Customer deleted"})
 
 if __name__ == '__main__':
     app.run(debug=True)
