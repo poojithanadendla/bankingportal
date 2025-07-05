@@ -1,0 +1,12 @@
+{
+    "john123": {
+        "account_number": "SB1001",
+        "balance": 5000,
+        "account_type": "Savings"
+    },
+    "jane456": {
+        "account_number": "SB1002",
+        "balance": 7000,
+        "account_type": "Current"
+    }
+}

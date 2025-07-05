@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Saraswat Bank Portal</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Saraswat Bank Portal</h1>
+
+  <div id="login-section">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" /><br />
+    <input type="password" id="password" placeholder="Password" /><br />
+    <button id="login-btn">Login</button>
+    <p id="login-message"></p>
+  </div>
+
+  <div id="account-section" style="display:none;">
+    <h2>Account Details</h2>
+    <p id="account-info"></p>
+
+    <h3>Transfer Funds</h3>
+    <input type="text" id="transfer-to" placeholder="Recipient Username" />
+    <input type="number" id="transfer-amount" placeholder="Amount" />
+    <button id="transfer-btn">Transfer</button>
+    <p id="transfer-message"></p>
+
+    <h3>Transaction History</h3>
+    <button id="load-transactions-btn">Load Transactions</button>
+    <ul id="transaction-list"></ul>
+
+    <button id="logout-btn">Logout</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
