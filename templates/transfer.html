@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Transfer Funds</title>
+</head>
+<body>
+  <h2>Fund Transfer</h2>
+  <form id="transferForm">
+    <label>To Account Number:</label><br>
+    <input type="text" name="to_account" required><br>
+    <label>Amount (₹):</label><br>
+    <input type="number" name="amount" required><br><br>
+    <button type="submit">Transfer</button>
+  </form>
+
+  <p id="resultMsg"></p>
+
+  <a href="/dashboard">← Back to Dashboard</a>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) window.location.href = '/';
+
+    document.getElementById("transferForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      fetch('/api/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from_user_id: user.id,
+          to_account: form.get('to_account'),
+          amount: parseFloat(form.get('amount'))
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("resultMsg").innerText = data.message;
+        });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+</head>
+<body>
+  <h2>Welcome, <span id="name"></span></h2>
+  <p>Account No: <span id="account_no"></span></p>
+  <p>Balance: ₹<span id="balance"></span></p>
+
+  <a href="/transfer">Transfer Funds</a> |
+  <a href="/transactions">Transaction History</a> |
+  <a href="/" onclick="logout()">Logout</a>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) window.location.href = '/';
+
+    document.getElementById("name").innerText = user.name;
+    document.getElementById("account_no").innerText = user.account_no;
+    document.getElementById("balance").innerText = user.balance;
+
+    function logout() {
+      localStorage.clear();
+    }
+  </script>
+</body>
+</html>
