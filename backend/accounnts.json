@@ -1,4 +1,4 @@
 {
-  "john": { "account_no": "1001", "balance": 5000 },
-  "alice": { "account_no": "1002", "balance": 7000 }
+  "user1": {"balance": 10000},
+  "user2": {"balance": 5000}
 }

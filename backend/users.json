@@ -1,3 +1,16 @@
-[
-  {"id": 1, "username": "admin", "password": "admin123", "name": "Admin User"}
-]
+{
+  "user1": {
+    "password": "pass123",
+    "profile": {
+      "name": "User One",
+      "email": "user1@example.com"
+    }
+  },
+  "user2": {
+    "password": "pass456",
+    "profile": {
+      "name": "User Two",
+      "email": "user2@example.com"
+    }
+  }
+}
