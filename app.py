@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.secret_key = 'super_secret_key'
 db = SQLAlchemy(app)
@@ -84,15 +85,16 @@ def get_transactions(user_id):
         'amount': t.amount
     } for t in txns])
 
-@app.before_first_request
-def init_db():
-    db.create_all()
-    # Add a default user if none exists (for testing)
-    if not User.query.filter_by(username='rahul123').first():
-        hashed_pw = generate_password_hash('1234')
-        user = User(username='rahul123', password=hashed_pw, account_no='SB123456', balance=10000.0, name='Rahul')
-        db.session.add(user)
-        db.session.commit()
+@app.before_request
+def init_db_once():
+    if not hasattr(app, 'db_initialized'):
+        db.create_all()
+        if not User.query.filter_by(username='rahul123').first():
+            hashed_pw = generate_password_hash('1234')
+            user = User(username='rahul123', password=hashed_pw, account_no='SB123456', balance=10000.0, name='Rahul')
+            db.session.add(user)
+            db.session.commit()
+        app.db_initialized = True
 
 if __name__ == '__main__':
     app.run(debug=True)
