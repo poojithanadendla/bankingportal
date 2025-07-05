@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saraswat Bank Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            width: 200px;
+        }
+        #message {
+            margin-top: 20px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Saraswat Bank Portal</h2>
+
+    <!-- Registration Form -->
+    <h3>Register</h3>
+    <input type="text" id="registerUsername" placeholder="Enter username"><br>
+    <input type="password" id="registerPassword" placeholder="Enter password"><br>
+    <button onclick="register()">Register</button>
+
+    <!-- Login Form -->
+    <h3>Login</h3>
+    <input type="text" id="loginUsername" placeholder="Enter username"><br>
+    <input type="password" id="loginPassword" placeholder="Enter password"><br>
+    <button onclick="login()">Login</button>
+
+    <!-- Account Management -->
+    <h3>Account Details</h3>
+    <button onclick="viewAccount()">View Account</button><br>
+
+    <!-- Fund Transfer -->
+    <h3>Fund Transfer</h3>
+    <input type="text" id="senderAccount" placeholder="Sender account number"><br>
+    <input type="text" id="receiverAccount" placeholder="Receiver account number"><br>
+    <input type="number" id="transferAmount" placeholder="Amount to transfer"><br>
+    <button onclick="transferFunds()">Transfer Funds</button>
+
+    <!-- Transaction History -->
+    <h3>Transaction History</h3>
+    <button onclick="viewTransactionHistory()">View Transaction History</button><br>
+
+    <div id="message"></div>
+
+    <script>
+        const apiUrl = 'http://127.0.0.1:5000';
+
+        async function register() {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const response = await fetch(`${apiUrl}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+            displayMessage(data.message);
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const response = await fetch(`${apiUrl}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+            displayMessage(data.message);
+        }
+
+        async function viewAccount() {
+            const userId = prompt('Enter your user ID:');
+            const response = await fetch(`${apiUrl}/account/${userId}`);
+            const data = await response.json();
+            displayMessage(JSON.stringify(data.accounts));
+        }
+
+        async function transferFunds() {
+            const senderAccount = document.getElementById('senderAccount').value;
+            const receiverAccount = document.getElementById('receiverAccount').value;
+            const amount = document.getElementById('transferAmount').value;
+
+            const response = await fetch(`${apiUrl}/transfer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ sender_account: senderAccount, receiver_account: receiverAccount, amount })
+            });
+            const data = await response.json();
+            displayMessage(data.message);
+        }
+
+        async function viewTransactionHistory() {
+            const userId = prompt('Enter your user ID:');
+            const response = await fetch(`${apiUrl}/transaction_history/${userId}`);
+            const data = await response.json();
+            displayMessage(JSON.stringify(data.transaction_history));
+        }
+
+        function displayMessage(message) {
+            document.getElementById('message').innerText = message;
+        }
+    </script>
+
+</body>
+</html>
